@@ -1,0 +1,17 @@
+.button {
+  background-color: aquamarine;
+  padding: 16px;
+  border: none;
+  border-radius: 5px;
+}
+
+img {
+  margin-bottom: 19px;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}

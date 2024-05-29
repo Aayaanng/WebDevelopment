@@ -1,0 +1,17 @@
+body {
+  background-color: antiquewhite;
+}
+
+h1,
+h3 {
+  color: green;
+}
+
+a {
+  text-decoration: none;
+  color: brown;
+}
+
+a:hover {
+  color: orange;
+}

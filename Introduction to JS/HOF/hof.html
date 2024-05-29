@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HOF</title>
+    <link rel="stylesheet" href="hof.css" />
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <center>
+      <h1>Higher order funtions is JavaScript</h1>
+      <p>
+        Functions that take in functions as arguments or return functions are
+        called Higher order functions
+      </p>
+      <img src="image.jpeg" alt="" />
+      <div>
+        <h3>1. ForEach</h3>
+        <p>
+          This should be used when you want same action to be applied across
+          every element of a list<br />
+          Example: const numbers = [1,2,3,4,5,6,7,8,9,10]<br />
+          If for every element you want to calculate twice of the number then
+          you can use ForEach<br />
+          numbers.forEach(number => {console.log(number*2)})
+        </p>
+      </div>
+      <div>
+        <h3>2. map</h3>
+        <p>
+          This should be used when you want to create a new array from an
+          existing one. And where every element is transformed using the same
+          logic.<br />
+          Example: const numbers = [1,2,3,4,5,6,7,8,9,10]<br />
+          You want to create [10,20,30,40,50,60,70,80,90,100] then you can use
+          map<br />
+          numbers.map(number => number*10)
+        </p>
+      </div>
+      <div>
+        <h3>3. filter</h3>
+        <p>
+          This should be used when you want to filter out elements of an array.
+          <br />
+          Example: const numbers = [1,2,3,4,5,6,7,8,9,10]<br />
+          You want to create [2,4,6,8,10] then you can use filter<br />
+          numbers.filter(number => { if(number%2 == 0) { return number}) }
+        </p>
+      </div>
+    </center>
+    <script src="hof.js"></script>
+  </body>
+</html>

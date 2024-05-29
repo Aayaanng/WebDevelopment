@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Change Color</title>
+    <style>
+      body {
+        background-color: beige;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      button {
+        border: 0;
+        padding: 36px;
+        background-color: brown;
+        border-radius: 8px;
+        color: whitesmoke;
+        font-size: 16px;
+      }
+
+      button:hover {
+        color: cadetblue;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <button onclick="changeColor()">Change color</button>
+    <script>
+      function changeColor() {
+        document.querySelector("body").style.backgroundColor = "#00f3ffad";
+      }
+    </script>
+  </body>
+</html>

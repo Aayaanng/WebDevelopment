@@ -1,0 +1,32 @@
+body {
+  display: flex;
+  padding: 24px;
+}
+
+.left {
+  background-color: cadetblue;
+  width: 30%;
+  border-radius: 40px 0 0 40px;
+  padding-left: 21px;
+}
+
+.right {
+  background-color: rgba(204, 91, 50, 0.733);
+  width: 70%;
+  border-radius: 0 40px 40px 0;
+}
+
+img {
+  height: 350px;
+  border-radius: 30px;
+  padding-bottom: 20px;
+}
+
+p {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+input {
+  margin-right: 12px !important;
+}

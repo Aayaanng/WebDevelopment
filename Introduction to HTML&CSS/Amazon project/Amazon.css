@@ -1,0 +1,49 @@
+.row {
+  display: flex;
+  gap: 42px;
+  align-items: center;
+}
+
+.text-container h2 {
+  font-family: Helvetica, sans-serif;
+  font-size: 20px;
+}
+
+.img-container img {
+  height: 260px;
+  width: 432px;
+  border-radius: 20px;
+}
+.card img {
+  border-radius: 20px;
+}
+.cards-container {
+  display: flex;
+  justify-content: space-between;
+}
+.margin {
+  margin-left: 400px;
+  margin-right: 400px;
+}
+p {
+  text-align: justify;
+}
+
+.navigation {
+  background-color: #0f1b2a;
+}
+
+body {
+  margin: 0;
+}
+
+span {
+  color: whitesmoke;
+  padding: 15px;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 900px;
+}
