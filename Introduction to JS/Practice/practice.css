@@ -1,0 +1,10 @@
+div {
+    background-color: lightblue;
+    padding: 20px;
+    border: 2px solid blue;
+    border-radius: 5px
+}
+
+*{
+    font-family: sans-serif;
+}

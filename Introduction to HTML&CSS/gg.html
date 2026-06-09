@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f0f1a;
+    color: #eee;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+  }
+  h1 { font-size: 1.5rem; color: #a78bfa; margin-bottom: 4px; }
+  p.sub { color: #888; font-size: 0.85rem; margin-bottom: 24px; }
+
+  #startBtn {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 50px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+    margin-bottom: 30px;
+  }
+  #startBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  #status { font-size: 0.8rem; color: #666; margin-bottom: 20px; min-height: 20px; }
+  #status.active { color: #34d399; }
+  #status.loading { color: #fbbf24; }
+
+  #bigNote {
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: #1a1a2e;
+    border: 3px solid #2d2d4e;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+  }
+  #bigNote.note-active {
+    border-color: #a78bfa;
+    box-shadow: 0 0 40px rgba(167,139,250,0.4);
+    background: #1e1535;
+  }
+  #noteLabel { font-size: 3.5rem; font-weight: 700; color: #a78bfa; line-height: 1; }
+  #noteLabel.noise-label { font-size: 1rem; color: #4b5563; }
+  #noteSubLabel { font-size: 0.75rem; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+  #bars-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-label { width: 110px; font-size: 0.8rem; color: #9ca3af; text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 22px; background: #1f1f35; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.15s ease; background: linear-gradient(90deg, #4f46e5, #a78bfa); }
+  .bar-fill.noise-bar { background: linear-gradient(90deg, #374151, #6b7280); }
+  .bar-fill.top-bar { background: linear-gradient(90deg, #7c3aed, #ec4899); }
+  .bar-pct { width: 40px; font-size: 0.75rem; color: #6b7280; text-align: right; flex-shrink: 0; }
+
+  #history { margin-top: 24px; width: 100%; max-width: 500px; background: #13131f; border-radius: 12px; padding: 14px 16px; }
+  #history h3 { font-size: 0.75rem; color: #4b5563; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  #historyList { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hist-chip {
+    background: #1e1535; border: 1px solid #2d2d4e; color: #a78bfa;
+    border-radius: 20px; padding: 3px 10px; font-size: 0.75rem;
+    animation: popIn 0.2s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🎵 Note Detector</h1>
+<p class="sub">Powered by Teachable Machine · Filters background noise</p>
+
+<button id="startBtn" onclick="init()">🎤 Start Listening</button>
+<div id="status">Press Start to begin</div>
+
+<div id="bigNote">
+  <div id="noteLabel" class="noise-label">—</div>
+  <div id="noteSubLabel">Waiting...</div>
+</div>
+
+<div id="bars-container"></div>
+
+<div id="history">
+  <h3>Detected Notes</h3>
+  <div id="historyList"><span style="color:#4b5563;font-size:0.8rem">None yet</span></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
+<script>
+const MODEL_URL = "https://teachablemachine.withgoogle.com/models/teRj5dsHMI/";
+
+// ✅ Any label matching these = treated as background noise
+const NOISE_KEYWORDS = ['_background_noise_', '_unknown_', 'background', 'noise', 'silence'];
+
+function isNoise(label) {
+  const l = label.toLowerCase();
+  return NOISE_KEYWORDS.some(n => l.includes(n));
+}
+
+let historyChips = [];
+let lastDetected = null;
+
+async function init() {
+  const btn = document.getElementById('startBtn');
+  const status = document.getElementById('status');
+  btn.disabled = true;
+  status.textContent = 'Loading model...';
+  status.className = 'loading';
+
+  try {
+    const recognizer = speechCommands.create(
+      "BROWSER_FFT", undefined,
+      MODEL_URL + "model.json",
+      MODEL_URL + "metadata.json"
+    );
+    await recognizer.ensureModelLoaded();
+
+    const classLabels = recognizer.wordLabels();
+    status.textContent = '🎤 Listening... play a note!';
+    status.className = 'active';
+    btn.textContent = '🔴 Listening';
+
+    // Build bar UI
+    const barsContainer = document.getElementById('bars-container');
+    barsContainer.innerHTML = '';
+    const barFills = [], barPcts = [];
+
+    classLabels.forEach((label, i) => {
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+
+      const lbl = document.createElement('div');
+      lbl.className = 'bar-label';
+      lbl.textContent = (isNoise(label) ? '🔇 ' : '🎵 ') + label;
+
+      const track = document.createElement('div');
+      track.className = 'bar-track';
+      const fill = document.createElement('div');
+      fill.className = 'bar-fill' + (isNoise(label) ? ' noise-bar' : '');
+      fill.style.width = '0%';
+      track.appendChild(fill);
+
+      const pct = document.createElement('div');
+      pct.className = 'bar-pct';
+      pct.textContent = '0%';
+
+      row.appendChild(lbl); row.appendChild(track); row.appendChild(pct);
+      barsContainer.appendChild(row);
+      barFills.push(fill); barPcts.push(pct);
+    });
+
+    recognizer.listen(result => {
+      const scores = Array.from(result.scores);
+
+      // Find overall top prediction
+      let topIdx = scores.indexOf(Math.max(...scores));
+      const topLabel = classLabels[topIdx];
+      const topScore = scores[topIdx];
+
+      // Update bars
+      let topNoteIdx = -1, topNoteScore = 0;
+      scores.forEach((score, i) => {
+        barFills[i].style.width = Math.round(score * 100) + '%';
+        barPcts[i].textContent = Math.round(score * 100) + '%';
+        barFills[i].classList.remove('top-bar');
+        if (!isNoise(classLabels[i]) && score > topNoteScore) {
+          topNoteScore = score; topNoteIdx = i;
+        }
+      });
+      if (topNoteIdx >= 0) barFills[topNoteIdx].classList.add('top-bar');
+
+      // Big display
+      const bigNote = document.getElementById('bigNote');
+      const noteLabel = document.getElementById('noteLabel');
+      const noteSubLabel = document.getElementById('noteSubLabel');
+
+      if (!isNoise(topLabel) && topScore >= 0.75) {
+        bigNote.className = 'note-active';
+        noteLabel.className = '';
+        noteLabel.textContent = topLabel;
+        noteSubLabel.textContent = Math.round(topScore * 100) + '% confidence';
+
+        if (topLabel !== lastDetected) {
+          lastDetected = topLabel;
+          addToHistory(topLabel);
+        }
+      } else {
+        bigNote.className = '';
+        noteLabel.className = 'noise-label';
+        noteLabel.textContent = '—';
+        noteSubLabel.textContent = 'Background noise';
+        lastDetected = null;
+      }
+    }, {
+      includeSpectrogram: true,
+      probabilityThreshold: 0.75,
+      invokeCallbackOnNoiseAndUnknown: true,
+      overlapFactor: 0.50
+    });
+
+  } catch (err) {
+    status.textContent = '❌ Error: ' + err.message;
+    status.className = '';
+    btn.disabled = false;
+    btn.textContent = '🎤 Start Listening';
+  }
+}
+
+function addToHistory(label) {
+  const listEl = document.getElementById('historyList');
+  if (historyChips.length === 0) listEl.innerHTML = '';
+  const chip = document.createElement('span');
+  chip.className = 'hist-chip';
+  chip.textContent = label;
+  listEl.appendChild(chip);
+  historyChips.push(label);
+  if (historyChips.length > 20) {
+    historyChips.shift();
+    listEl.removeChild(listEl.firstChild);
+  }
+}
+</script>
+</body>
+</html>
